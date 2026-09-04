@@ -255,6 +255,25 @@ body {
   gap: 8px;
   border-top: 1px solid var(--line);
 }
+.ce-bubble-typing { color: var(--taupe); font-style: italic; }
+
+.ce-chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+.ce-chat-input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-family: 'Work Sans', sans-serif;
+}
+.ce-chat-input:focus { outline: none; border-color: var(--rose-deep); }
+.ce-chat-input-row .ce-btn:disabled { opacity: 0.5; cursor: default; }
 
 .ce-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 .ce-panel-card {
