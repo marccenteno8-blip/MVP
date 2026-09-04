@@ -99,16 +99,51 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
             calculado en directo desde la agenda real del salón.
           </p>
         </div>
-        <div className="ce-hero-card">
-          <div className="ce-hero-card-label">Disponibilidad en directo</div>
-          {earliest?.slot ? (
-            <>
-              <div className="ce-hero-card-big">{formatSlot(earliest.slot)}</div>
-              <div className="ce-hero-card-sub">con {earliest.stylist.name} · {service?.name}</div>
-            </>
-          ) : (
-            <div className="ce-hero-card-sub">{loadingSlots ? "Calculando…" : "Sin huecos próximos"}</div>
-          )}
+        <div className="ce-hero-visual">
+          <div className="ce-hero-photo">
+            <img
+              src="https://images.unsplash.com/photo-1605980625982-b128a7e7fde2?auto=format&fit=crop&w=1200&q=80"
+              alt="Coloración y mechas en el salón"
+            />
+          </div>
+          <div className="ce-hero-card">
+            <div className="ce-hero-card-label">Disponibilidad en directo</div>
+            {earliest?.slot ? (
+              <>
+                <div className="ce-hero-card-big">{formatSlot(earliest.slot)}</div>
+                <div className="ce-hero-card-sub">con {earliest.stylist.name} · {service?.name}</div>
+              </>
+            ) : (
+              <div className="ce-hero-card-sub">{loadingSlots ? "Calculando…" : "Sin huecos próximos"}</div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="ce-section">
+        <h2 className="ce-h2">Nuestro salón</h2>
+        <div className="ce-gallery">
+          <div className="ce-gallery-item">
+            <img
+              src="https://images.unsplash.com/photo-1702865272115-5afdbae975af?auto=format&fit=crop&w=600&q=80"
+              alt="Interior del salón"
+            />
+            <span className="ce-gallery-label">Espacio y ambiente</span>
+          </div>
+          <div className="ce-gallery-item">
+            <img
+              src="https://images.unsplash.com/photo-1621645582931-d1d3e6564943?auto=format&fit=crop&w=600&q=80"
+              alt="Sillón de peluquería"
+            />
+            <span className="ce-gallery-label">Puestos de trabajo</span>
+          </div>
+          <div className="ce-gallery-item">
+            <img
+              src="https://images.unsplash.com/photo-1605980625982-b128a7e7fde2?auto=format&fit=crop&w=600&q=80"
+              alt="Coloración y mechas"
+            />
+            <span className="ce-gallery-label">Color y mechas</span>
+          </div>
         </div>
       </section>
 
