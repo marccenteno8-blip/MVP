@@ -5,6 +5,13 @@ import { formatSlot } from "../lib/format";
 
 type Row = { stylist: Stylist; slot: string | null };
 
+// Número real de WhatsApp Business del salón, en formato internacional
+// sin espacios ni "+", tal como lo exige el enlace wa.me.
+const WHATSAPP_PHONE = "34671082729";
+const WHATSAPP_DISPLAY = "671 082 729";
+const WHATSAPP_PREFILL = "Hola, quiero reservar una cita";
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_PREFILL)}`;
+
 export default function ReservarView({ stylists, services }: { stylists: Stylist[]; services: Service[] }) {
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
   const [rows, setRows] = useState<Row[]>([]);
@@ -118,6 +125,19 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
             )}
           </div>
         </div>
+      </section>
+
+      <section className="ce-section">
+        <a className="ce-wa-card" href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+          <span className="ce-wa-icon" aria-hidden="true">💬</span>
+          <span className="ce-wa-text">
+            <span className="ce-wa-title">¿Prefieres reservar hablando?</span>
+            <span className="ce-wa-sub">
+              Escríbenos y un asistente te dice al momento qué horas y con qué estilista tienes libres.
+            </span>
+          </span>
+          <span className="ce-wa-number">{WHATSAPP_DISPLAY}</span>
+        </a>
       </section>
 
       <section className="ce-section">

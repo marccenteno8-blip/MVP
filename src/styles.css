@@ -216,6 +216,49 @@ body {
   font-size: 13px;
 }
 
+.ce-wa-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  text-decoration: none;
+  color: inherit;
+  background: white;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--wa);
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ce-wa-card:hover {
+  border-color: var(--wa);
+  box-shadow: 0 2px 10px rgba(79, 122, 93, 0.15);
+}
+.ce-wa-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ce-wa-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 200px;
+}
+.ce-wa-title { font-weight: 600; font-size: 15px; }
+.ce-wa-sub { font-size: 13px; color: var(--taupe); }
+.ce-wa-number {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--wa);
+  background: #EAF3EC;
+  padding: 8px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .ce-phone {
   max-width: 380px;
   border: 1px solid var(--line);

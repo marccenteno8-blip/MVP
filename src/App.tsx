@@ -4,11 +4,10 @@ import { Stylist, Service } from "./types";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ReservarView from "./components/ReservarView";
-import WhatsAppView from "./components/WhatsAppView";
 import PanelView from "./components/PanelView";
 
 export default function App() {
-  const [view, setView] = useState<"reservar" | "whatsapp" | "panel">("reservar");
+  const [view, setView] = useState<"reservar" | "panel">("reservar");
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +44,6 @@ export default function App() {
       {!loading && !error && (
         <>
           {view === "reservar" && <ReservarView stylists={stylists} services={services} />}
-          {view === "whatsapp" && <WhatsAppView stylists={stylists} services={services} />}
           {view === "panel" && <PanelView stylists={stylists} />}
         </>
       )}

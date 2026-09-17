@@ -1,9 +1,8 @@
-type View = "reservar" | "whatsapp" | "panel";
+type View = "reservar" | "panel";
 
 export default function Header({ view, setView }: { view: View; setView: (v: View) => void }) {
   const tabs: { id: View; label: string }[] = [
     { id: "reservar", label: "Reservar" },
-    { id: "whatsapp", label: "WhatsApp" },
     { id: "panel", label: "Panel del salón" },
   ];
   return (
