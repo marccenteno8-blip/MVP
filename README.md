@@ -1,12 +1,19 @@
-# Chic Estilistes — plataforma de reservas
+# Plataforma de reservas para peluquerías
 
-Web de reservas conectada a Supabase: calcula el primer hueco libre de cada
-estilista en tiempo real y lo comparte entre la web, el simulador de
-WhatsApp y el panel del salón (que se actualiza solo vía Supabase Realtime).
+Plantilla reutilizable para varios locales: web de reservas conectada a
+Supabase que calcula los próximos huecos libres de cada estilista en
+tiempo real y los comparte entre la web, el bot de WhatsApp y el panel
+del salón (que se actualiza solo vía Supabase Realtime).
+
+**Para personalizarla a un salón concreto, solo hace falta tocar dos sitios:**
+- `src/config.ts` → nombre del salón, dirección y número de WhatsApp (frontend).
+- `supabase/functions/whatsapp-webhook/index.ts`, constante `SALON_NAME` →
+  el mismo nombre pero para los mensajes del bot (Deno no puede compartir
+  ese archivo con el frontend).
 
 Los datos de estilistas, servicios, horario y precios son de ejemplo
 (`supabase/migrations/0001_init.sql`) — se sustituyen por los reales de
-Chic Estilistes en cuanto tengas acceso a ellos.
+cada salón en cuanto se tenga acceso a ellos.
 
 ## 1. Requisitos
 

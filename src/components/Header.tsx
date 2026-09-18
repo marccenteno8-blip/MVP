@@ -1,3 +1,5 @@
+import { SALON_NAME, SALON_ADDRESS } from "../config";
+
 type View = "reservar" | "panel";
 
 export default function Header({ view, setView }: { view: View; setView: (v: View) => void }) {
@@ -9,15 +11,12 @@ export default function Header({ view, setView }: { view: View; setView: (v: Vie
     <header className="ce-header">
       <div className="ce-header-inner">
         <div className="ce-brand">
-          <span className="ce-brand-mark">
-            <img
-              src="https://images.unsplash.com/photo-1621645582931-d1d3e6564943?auto=format&fit=crop&w=100&h=100&q=70"
-              alt="Chic Estilistes"
-            />
+          <span className="ce-brand-mark" aria-hidden="true">
+            {SALON_NAME[0]}
           </span>
           <div>
-            <div className="ce-brand-name">Chic Estilistes</div>
-            <div className="ce-brand-sub">Carrer dels Ametllers, 8 · El Masnou</div>
+            <div className="ce-brand-name">{SALON_NAME}</div>
+            <div className="ce-brand-sub">{SALON_ADDRESS}</div>
           </div>
         </div>
         <nav className="ce-nav">

@@ -26,6 +26,13 @@ const supabase = createClient(
 
 type Lang = "es" | "ca" | "en";
 
+// Nombre del salón para los mensajes del bot. Deno no puede importar
+// src/config.ts (vive en el bundle de React), así que este backend tiene
+// su propia constante: al clonar la plantilla para un salón nuevo, cambia
+// este valor además del de src/config.ts.
+const SALON_NAME = "Tu Salón";
+
+
 type Conversation = {
   phone: string;
   stage: "service" | "stylist" | "confirm" | "done";
@@ -334,7 +341,7 @@ const T: Record<Lang, {
   locale: string;
 }> = {
   es: {
-    greeting: (list) => `¡Hola! Soy el asistente de Chic Estilistes 💇\n¿Qué te gustaría reservar? Responde con el número:\n\n${list}`,
+    greeting: (list) => `¡Hola! Soy el asistente de ${SALON_NAME} 💇\n¿Qué te gustaría reservar? Responde con el número:\n\n${list}`,
     unknownService: "No he reconocido ese servicio. Responde con el número de la lista.",
     askStylist: (list, n) => `¿Con quién prefieres? Responde con el número, o "${n}" si no tienes preferencia:\n\n${list}\n${n}. Cualquiera`,
     anyone: "Cualquiera",
@@ -348,7 +355,7 @@ const T: Record<Lang, {
     locale: "es-ES",
   },
   ca: {
-    greeting: (list) => `Hola! Sóc l'assistent de Chic Estilistes 💇\nQuè t'agradaria reservar? Respon amb el número:\n\n${list}`,
+    greeting: (list) => `Hola! Sóc l'assistent de ${SALON_NAME} 💇\nQuè t'agradaria reservar? Respon amb el número:\n\n${list}`,
     unknownService: "No he reconegut aquest servei. Respon amb el número de la llista.",
     askStylist: (list, n) => `Amb qui prefereixes? Respon amb el número, o "${n}" si no tens preferència:\n\n${list}\n${n}. Qualsevol`,
     anyone: "Qualsevol",
@@ -362,7 +369,7 @@ const T: Record<Lang, {
     locale: "ca-ES",
   },
   en: {
-    greeting: (list) => `Hi! I'm the Chic Estilistes assistant 💇\nWhat would you like to book? Reply with the number:\n\n${list}`,
+    greeting: (list) => `Hi! I'm the ${SALON_NAME} assistant 💇\nWhat would you like to book? Reply with the number:\n\n${list}`,
     unknownService: "I didn't recognize that service. Reply with the number from the list.",
     askStylist: (list, n) => `Who would you prefer? Reply with the number, or "${n}" if you have no preference:\n\n${list}\n${n}. Anyone`,
     anyone: "Anyone",

@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Stylist, Service } from "../types";
 import { formatSlot } from "../lib/format";
+import { SALON_NAME, WHATSAPP_PHONE, WHATSAPP_DISPLAY } from "../config";
 
-type Row = { stylist: Stylist; slot: string | null };
+// Cuántos huecos próximos se enseñan por estilista. 3 da opción real de
+// elegir sin saturar la tarjeta; súbelo si tu agenda tiene mucho hueco y
+// quieres enseñar más alternativas de un vistazo.
+const SLOTS_PER_STYLIST = 3;
 
-// Número real de WhatsApp Business del salón, en formato internacional
-// sin espacios ni "+", tal como lo exige el enlace wa.me.
-const WHATSAPP_PHONE = "34671082729";
-const WHATSAPP_DISPLAY = "671 082 729";
+type Row = { stylist: Stylist; slots: string[] };
+
 const WHATSAPP_PREFILL = "Hola, quiero reservar una cita";
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_PREFILL)}`;
 
@@ -16,7 +18,7 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
   const [rows, setRows] = useState<Row[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [picked, setPicked] = useState<{ stylistId: string; slot: string } | null>(null);
   const [name, setName] = useState("");
   const [success, setSuccess] = useState<{ stylistName: string; slot: string } | null>(null);
 
@@ -26,22 +28,8 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
     if (!service) return;
     let cancelled = false;
     setLoadingSlots(true);
-    Promise.all(
-      stylists.map(async (stylist) => {
-        const { data, error } = await supabase.rpc("next_available_slot", {
-          p_stylist_id: stylist.id,
-          p_duration_min: service.duration_min,
-        });
-        if (error) console.error(error);
-        return { stylist, slot: (data as string | null) ?? null };
-      })
-    ).then((result) => {
+    fetchRows(service).then((result) => {
       if (cancelled) return;
-      result.sort((a, b) => {
-        if (!a.slot) return 1;
-        if (!b.slot) return -1;
-        return a.slot < b.slot ? -1 : 1;
-      });
       setRows(result);
       setLoadingSlots(false);
     });
@@ -49,6 +37,27 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
       cancelled = true;
     };
   }, [serviceId, stylists, service]);
+
+  async function fetchRows(svc: Service): Promise<Row[]> {
+    const result = await Promise.all(
+      stylists.map(async (stylist) => {
+        const { data, error } = await supabase.rpc("next_available_slots", {
+          p_stylist_id: stylist.id,
+          p_duration_min: svc.duration_min,
+          p_count: SLOTS_PER_STYLIST,
+        });
+        if (error) console.error(error);
+        const slots = ((data as { slot_start: string }[] | null) ?? []).map((r) => r.slot_start);
+        return { stylist, slots };
+      })
+    );
+    result.sort((a, b) => {
+      if (a.slots.length === 0) return 1;
+      if (b.slots.length === 0) return -1;
+      return a.slots[0] < b.slots[0] ? -1 : 1;
+    });
+    return result;
+  }
 
   async function confirm(stylist: Stylist, slot: string) {
     if (!service) return;
@@ -67,64 +76,26 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
       return;
     }
     setSuccess({ stylistName: stylist.name, slot });
-    setConfirmingId(null);
+    setPicked(null);
     setName("");
-    refetch();
+    if (service) {
+      setLoadingSlots(true);
+      fetchRows(service).then((result) => {
+        setRows(result);
+        setLoadingSlots(false);
+      });
+    }
   }
-
-  async function refetch() {
-    if (!service) return;
-    setLoadingSlots(true);
-    const result = await Promise.all(
-      stylists.map(async (stylist) => {
-        const { data } = await supabase.rpc("next_available_slot", {
-          p_stylist_id: stylist.id,
-          p_duration_min: service.duration_min,
-        });
-        return { stylist, slot: (data as string | null) ?? null };
-      })
-    );
-    result.sort((a, b) => {
-      if (!a.slot) return 1;
-      if (!b.slot) return -1;
-      return a.slot < b.slot ? -1 : 1;
-    });
-    setRows(result);
-    setLoadingSlots(false);
-  }
-
-  const earliest = rows.find((r) => r.slot);
 
   return (
     <main className="ce-main">
-      <section className="ce-hero">
-        <div className="ce-hero-text">
-          <p className="ce-kicker">Reservas online</p>
-          <h1>En El Masnou, cuando el pelo no puede esperar, tampoco debería esperar la respuesta.</h1>
-          <p className="ce-hero-p">
-            Elige el servicio y verás, al segundo, el primer hueco libre de cada estilista —
-            calculado en directo desde la agenda real del salón.
-          </p>
-        </div>
-        <div className="ce-hero-visual">
-          <div className="ce-hero-photo">
-            <img
-              src="https://images.unsplash.com/photo-1605980625982-b128a7e7fde2?auto=format&fit=crop&w=1200&q=80"
-              alt="Coloración y mechas en el salón"
-            />
-          </div>
-          <div className="ce-hero-card">
-            <div className="ce-hero-card-label">Disponibilidad en directo</div>
-            {earliest?.slot ? (
-              <>
-                <div className="ce-hero-card-big">{formatSlot(earliest.slot)}</div>
-                <div className="ce-hero-card-sub">con {earliest.stylist.name} · {service?.name}</div>
-              </>
-            ) : (
-              <div className="ce-hero-card-sub">{loadingSlots ? "Calculando…" : "Sin huecos próximos"}</div>
-            )}
-          </div>
-        </div>
+      <section className="ce-hero ce-hero-compact">
+        <p className="ce-kicker">Reservas online</p>
+        <h1>Reserva tu cita en {SALON_NAME} en menos de un minuto</h1>
+        <p className="ce-hero-p">
+          Elige el servicio y verás, al segundo, las próximas horas libres de cada estilista —
+          calculadas en directo desde la agenda real del salón.
+        </p>
       </section>
 
       <section className="ce-section">
@@ -136,35 +107,15 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
               Escríbenos y un asistente te dice al momento qué horas y con qué estilista tienes libres.
             </span>
           </span>
-          <span className="ce-wa-number">{WHATSAPP_DISPLAY}</span>
+          <span className="ce-wa-btn">
+            <span className="ce-wa-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.13-4.9-4.32-.14-.19-1.17-1.56-1.17-2.98s.73-2.11.99-2.4c.26-.28.56-.35.75-.35.19 0 .38 0 .54.01.17.01.4-.07.63.48.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.19-.28.37-.23.63-.14.26.1 1.65.78 1.94.92.28.14.47.21.54.33.07.12.07.68-.17 1.36z" />
+              </svg>
+            </span>
+            {WHATSAPP_DISPLAY}
+          </span>
         </a>
-      </section>
-
-      <section className="ce-section">
-        <h2 className="ce-h2">Nuestro salón</h2>
-        <div className="ce-gallery">
-          <div className="ce-gallery-item">
-            <img
-              src="https://images.unsplash.com/photo-1702865272115-5afdbae975af?auto=format&fit=crop&w=600&q=80"
-              alt="Interior del salón"
-            />
-            <span className="ce-gallery-label">Espacio y ambiente</span>
-          </div>
-          <div className="ce-gallery-item">
-            <img
-              src="https://images.unsplash.com/photo-1621645582931-d1d3e6564943?auto=format&fit=crop&w=600&q=80"
-              alt="Sillón de peluquería"
-            />
-            <span className="ce-gallery-label">Puestos de trabajo</span>
-          </div>
-          <div className="ce-gallery-item">
-            <img
-              src="https://images.unsplash.com/photo-1605980625982-b128a7e7fde2?auto=format&fit=crop&w=600&q=80"
-              alt="Coloración y mechas"
-            />
-            <span className="ce-gallery-label">Color y mechas</span>
-          </div>
-        </div>
       </section>
 
       <section className="ce-section">
@@ -174,7 +125,10 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
             <button
               key={s.id}
               className={`ce-chip ${serviceId === s.id ? "is-active" : ""}`}
-              onClick={() => setServiceId(s.id)}
+              onClick={() => {
+                setServiceId(s.id);
+                setPicked(null);
+              }}
             >
               {s.name}
               <span className="ce-chip-meta">
@@ -186,46 +140,59 @@ export default function ReservarView({ stylists, services }: { stylists: Stylist
       </section>
 
       <section className="ce-section">
-        <h2 className="ce-h2">2. Elige el primer hueco de cada estilista</h2>
+        <h2 className="ce-h2">2. Elige hora y estilista</h2>
         <div className="ce-stylist-list">
-          {rows.map(({ stylist, slot }) => (
+          {rows.map(({ stylist, slots }) => (
             <div className="ce-stylist-card" key={stylist.id}>
-              <div className="ce-stylist-id">
-                <span className="ce-avatar">{stylist.name[0]}</span>
-                <div>
-                  <div className="ce-stylist-name">{stylist.name}</div>
-                  <div className="ce-stylist-role">{stylist.role}</div>
+              <div className="ce-stylist-top">
+                <div className="ce-stylist-id">
+                  <span className="ce-avatar">{stylist.name[0]}</span>
+                  <div>
+                    <div className="ce-stylist-name">{stylist.name}</div>
+                    <div className="ce-stylist-role">{stylist.role}</div>
+                  </div>
                 </div>
+
+                {slots.length > 0 ? (
+                  <div className="ce-slot-chip-row">
+                    {slots.map((slot) => (
+                      <button
+                        key={slot}
+                        className={`ce-slot-chip ${
+                          picked?.stylistId === stylist.id && picked.slot === slot ? "is-active" : ""
+                        }`}
+                        onClick={() =>
+                          setPicked(
+                            picked?.stylistId === stylist.id && picked.slot === slot
+                              ? null
+                              : { stylistId: stylist.id, slot }
+                          )
+                        }
+                      >
+                        {formatSlot(slot)}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ce-slot-empty">{loadingSlots ? "Calculando…" : "Sin hueco próximo"}</div>
+                )}
               </div>
 
-              {slot ? (
-                <div className="ce-slot-block">
-                  <div className="ce-slot-when">
-                    <span className="ce-slot-time">{formatSlot(slot)}</span>
-                  </div>
-                  {confirmingId === stylist.id ? (
-                    <div className="ce-confirm-row">
-                      <input
-                        className="ce-input"
-                        placeholder="Tu nombre"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                      <button className="ce-btn ce-btn-primary" onClick={() => confirm(stylist, slot)}>
-                        Confirmar
-                      </button>
-                      <button className="ce-btn ce-btn-ghost" onClick={() => setConfirmingId(null)}>
-                        Cancelar
-                      </button>
-                    </div>
-                  ) : (
-                    <button className="ce-btn ce-btn-primary" onClick={() => setConfirmingId(stylist.id)}>
-                      Reservar este hueco
-                    </button>
-                  )}
+              {picked?.stylistId === stylist.id && (
+                <div className="ce-confirm-row">
+                  <input
+                    className="ce-input"
+                    placeholder="Tu nombre"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <button className="ce-btn ce-btn-primary" onClick={() => confirm(stylist, picked.slot)}>
+                    Confirmar
+                  </button>
+                  <button className="ce-btn ce-btn-ghost" onClick={() => setPicked(null)}>
+                    Cancelar
+                  </button>
                 </div>
-              ) : (
-                <div className="ce-slot-empty">{loadingSlots ? "Calculando…" : "Sin hueco próximo"}</div>
               )}
             </div>
           ))}

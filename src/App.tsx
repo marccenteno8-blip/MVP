@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import { Stylist, Service } from "./types";
+import { SALON_NAME } from "./config";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ReservarView from "./components/ReservarView";
@@ -12,6 +13,10 @@ export default function App() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = `${SALON_NAME} — Reservas`;
+  }, []);
 
   useEffect(() => {
     async function load() {
