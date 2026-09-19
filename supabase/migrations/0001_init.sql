@@ -7,14 +7,14 @@ create extension if not exists "pgcrypto";
 
 create table if not exists stylists (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
+  name text not null unique,
   role text,
   created_at timestamptz not null default now()
 );
 
 create table if not exists services (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
+  name text not null unique,
   duration_min int not null,
   price_cents int,
   created_at timestamptz not null default now()
